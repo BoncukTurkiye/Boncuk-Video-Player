@@ -30,6 +30,8 @@ function BoncukVideoPlayer(source) {
     videoControllerStatus = true;
     var element;
 
+    document.head.innerHTML += '<link rel="stylesheet" href="css/style.css"/>';
+
     videoDiv = AddElement("div", [
         {"key": "class", "value": "boncuk-video-player"},
         {"key": "id", "value": videoId}
