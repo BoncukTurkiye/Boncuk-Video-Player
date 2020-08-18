@@ -1,0 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+div.boncuk-video-player {
+    background: #fff;
+}
+
+div.boncuk-video-player video.boncuk-video-player {
+    width: 100%;
+    margin: 0 auto -4px;
+}
+
+div.boncuk-video-controller {
+    position: absolute;
+    display: grid;
+    grid-template-areas: 'left center right';
+    grid-template-columns: 135px auto 96px;
+    width: 100%;
+    background: rgba(0, 0, 0, .6);
+    border-top: 1px solid #222;
+    color: rgba(255, 255, 255, .6);
+    height: 35px;
+    box-sizing: border-box;
+    margin: -36px 0 0;
+    z-index: 10;
+}
+
+div.boncuk-video-controller a {
+    color: rgba(255, 255, 255, .6);
+    text-decoration: none;
+}
+
+div.boncuk-video-controller > * {
+    margin: auto 0;
+}
+
+div.boncuk-video-controller-left > * {
+    margin: 0 .25rem;
+}
+
+div.boncuk-video-controller-left a:first-child {
+    margin: 0 .25rem 0 1rem;
+}
+
+input.boncuk-video-controller-timeline {
+    display: block;
+    width: 100%;
+}
+
+input.boncuk-video-controller-timeline::-webkit-slider-thumb {
+    background: #fff;
+}
+
+div.boncuk-video-controller-right {
+    text-align: right;
+}
+
+div.boncuk-video-controller-right a {
+    margin: 0 .25rem;
+}
+
+div.boncuk-video-controller-right a:last-child {
+    margin: 0 1rem 0 .25rem;
+}
+
+div.boncuk-video-live-timeline {
+    background: #7198d2;
+    height: 5px;
+}
+
+span.boncuk-logo-for-video {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: url(../img/boncuk-for-video-player.png) top left no-repeat;
+    background-size: 100% 100%;
+}
