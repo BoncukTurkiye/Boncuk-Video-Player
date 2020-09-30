@@ -7,7 +7,12 @@ Tamamen sıfırdan kodlanmış bir sistem. Tarayıcı tarafından kullanılmak �
 ## Nasıl Kullanılır?
 `boncuk-player.js` dosyasını projenize dahil edin. Ardından `<script>BoncukVideoPlayer(video);</script>` komutu ile oynatıcının yer alacağı bölümü belirlemeniz gerekiyor. Ardından sayfayı yeniden yüklediğinizde video oynatıcı çalışacaktır.
 
-***Önemli hatırlatma***; Videolar şuan sadece `video/mp4` MIME type'larda çalışmaktadır.
+***Önemli hatırlatma***; Videolar aşağıda yer alan uzantılarda test edilmiş ve sorunsuz çalıştığı gözlemlenmiştir. Bunlar;
+
+- `*.mp4`
+- `*.webm`
+- `*.mov`
+- `*.mkv`
 
 ***Önemli hatırlatma***; `boncuk-player.js` dosyasını komutun üstünde olmasına özen gösterin. Mümkünse `<head>` etiketi arasına yerleştirin.
 
