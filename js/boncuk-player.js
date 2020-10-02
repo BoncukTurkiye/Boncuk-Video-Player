@@ -5,9 +5,9 @@ var videoId;
 var videoController;
 var videoControllerParts = [];
 var videoControllerStatus;
+var options;
 
 var videoPlayButton;
-var videoTimer;
 var controllerTimeline;
 var liveTimeline;
 
@@ -28,35 +28,28 @@ function AddElement(tag, attribute, text = "") {
     var element;
     element = document.createElement(tag);
     for(var i = 0; i < attribute.length; i++) {
-        element.setAttribute(attribute[i].key, attribute[i].value);
+        if(!attribute[i].key == '') {
+            element.setAttribute(attribute[i].key, attribute[i].value);
+        }
     }
     element.innerHTML = text;
     return element;
 }
 
-function BoncukVideoPlayer(source) {
-    extension = source.split('.');
-    extension = extension[extension.length-1];
-    videoId = "kdjhg2kg23";
-    videoControllerStatus = true;
+function BuildElement(videoId) {
     var element;
 
     document.head.innerHTML += '<link rel="stylesheet" href="css/style.css"/>';
 
+    var vidId = videoId == '' ? {} : {"key": "id", "value": videoId + "-panel"};
+
     videoDiv = AddElement("div", [
         {"key": "class", "value": "boncuk-video-player"},
-        {"key": "id", "value": videoId}
+        vidId
     ]);
+    
     document.body.appendChild(videoDiv);
 
-    video = AddElement("video", [
-        {"key": "class", "value": "boncuk-video-player"},
-        {"key": "onclick", "value": "BoncukPlayVideo();"},
-        {"key": "autoplay", "value": ""}
-    ]);
-    video.muted = false;
-    video.controls = false;
-    videoDiv.append(video);
     var mime = '';
 
     for(var i = 0; i < fileTypes.length; i++) {
@@ -68,11 +61,22 @@ function BoncukVideoPlayer(source) {
     mime = mime == '' ? 'video/mp4' : mime;
 
     element = AddElement("source", [
-        {"key": "src", "value": source},
+        {"key": "src", "value": videoSource},
         {"key": "type", "value": mime}
     ]);
 
+    vidId = videoId == '' ? {} : {"key": "id", "value": videoId + ""};
+
+    video = AddElement("video", [
+        {"key": "class", "value": "boncuk-video-player"},
+        vidId
+    ]);
+
+    video.muted = true;
+    video.controls = false;
+    videoDiv.append(video);
     video.append(element);
+
     video.append(document.createTextNode("Tarayıcınız video özelliğini desteklemiyor..."));
 
     videoController = AddElement("div", [{"key": "class", "value": "boncuk-video-controller"}]);
@@ -93,7 +97,7 @@ function BoncukVideoPlayer(source) {
     videoControllerParts[0].append(videoPlayButton);
 
     element = AddElement("i", [
-        {"key": "class", "value": "fa fa-pause"}
+        {"key": "class", "value": "fa fa-play"}
     ]);
     videoPlayButton.append(element);
 
@@ -137,11 +141,22 @@ function BoncukVideoPlayer(source) {
     ]);
     liveTimeline.style.width = "0%";
     videoDiv.append(liveTimeline);
-
-    controlTimer = setInterval(BoncukVideoListener, timer);
     videoDiv.addEventListener("mouseenter", function() {BoncukToggleController(true);});
     videoDiv.addEventListener("mouseleave", function() {BoncukToggleController(false);});
-    videoControllerStatus = false;
+}
+
+function BoncukVideoPlayer(source, _options = '') {
+    videoSource = source;
+    extension = source.split('.');
+    extension = extension[extension.length-1];
+    videoControllerStatus = true;
+    
+    _options.autoplay = _options.autoplay == undefined ? false : _options.autoplay;
+    _options.muted = _options.muted == undefined ? false : _options.muted;
+    _options.videoId = _options.videoId == undefined ? '' : _options.videoId;
+
+    options = _options;
+    videoId = _options.videoId;
 }
 
 function BoncukSetPad(value) {
@@ -154,11 +169,10 @@ function BoncukTextTime(currentTime) {
 
 function BoncukVideoListener() {
     currentTime[2] = parseInt(video.currentTime % 60);
-    if(video.currentTime / 60 != currentTime[1]) {
+    if(video.currentTime / 60 != currentTime[1])
         currentTime[1] = video.currentTime / 60;
-        if(video.currentTime / 3600 != currentTime[0])
-            currentTime[0] = video.currentTime / 3600;
-    }
+    if(video.currentTime / 3600 != currentTime[0])
+        currentTime[0] = video.currentTime / 3600;
 
     BoncukTextTime(currentTime);
 
@@ -167,14 +181,16 @@ function BoncukVideoListener() {
 }
 
 function BoncukPlayVideo() {
-    if(!video.paused) {
-        video.pause();
-        videoPlayButton.childNodes[0].className = "fa fa-play";
-        clearInterval(controlTimer);
-    }else {
+    if(video.paused) {
         video.play();
+        video.muted = false;
         videoPlayButton.childNodes[0].className = "fa fa-pause";
         controlTimer = setInterval(BoncukVideoListener, timer);
+    }else {
+        video.pause();
+        video.muted = true;
+        videoPlayButton.childNodes[0].className = "fa fa-play";
+        clearInterval(controlTimer);
     }
 }
 
@@ -190,3 +206,14 @@ function BoncukRestartVideo() {
     video.currentTime = 0;
     BoncukTextTime(currentTime);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    BuildElement(videoId);
+
+    if(typeof(options) == 'object') {
+        if(options.autoplay) {
+            BoncukPlayVideo();
+        }
+        video.muted = options.muted;
+    }
+});
