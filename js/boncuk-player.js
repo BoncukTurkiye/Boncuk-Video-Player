@@ -15,6 +15,8 @@ var controlTimer;
 var controllerTime = 0;
 var currentTime = [0, 0, 0];
 var timer = 1000;
+var timelineTimer = 50;
+var controlTimelineTimer;
 
 var extension;
 var fileTypes = [
@@ -41,10 +43,10 @@ function BuildElement(videoId) {
 
     document.head.innerHTML += '<link rel="stylesheet" href="css/style.css"/>';
 
-    var vidId = videoId == '' ? {} : {"key": "id", "value": videoId + "-panel"};
+    var vidId = videoId == '' ? {} : {key: "id", value: videoId + "-panel"};
 
     videoDiv = AddElement("div", [
-        {"key": "class", "value": "boncuk-video-player"},
+        {key: "class", value: "boncuk-video-player"},
         vidId
     ]);
     
@@ -61,14 +63,14 @@ function BuildElement(videoId) {
     mime = mime == '' ? 'video/mp4' : mime;
 
     element = AddElement("source", [
-        {"key": "src", "value": videoSource},
-        {"key": "type", "value": mime}
+        {key: "src", value: videoSource},
+        {key: "type", value: mime}
     ]);
 
-    vidId = videoId == '' ? {} : {"key": "id", "value": videoId + ""};
+    vidId = videoId == '' ? {} : {key: "id", value: videoId + ""};
 
     video = AddElement("video", [
-        {"key": "class", "value": "boncuk-video-player"},
+        {key: "class", value: "boncuk-video-player"},
         vidId
     ]);
 
@@ -79,65 +81,66 @@ function BuildElement(videoId) {
 
     video.append(document.createTextNode("Tarayıcınız video özelliğini desteklemiyor..."));
 
-    videoController = AddElement("div", [{"key": "class", "value": "boncuk-video-controller"}]);
+    videoController = AddElement("div", [{key: "class", value: "boncuk-video-controller"}]);
     videoDiv.append(videoController);
 
     var parts = ["left", "center", "right"];
 
     for(var i = 0; i < parts.length; i++) {
-        videoControllerParts[i] = AddElement("div", [{"key": "class", "value": "boncuk-video-controller-" + parts[i]}]);
+        videoControllerParts[i] = AddElement("div", [{key: "class", value: "boncuk-video-controller-" + parts[i]}]);
         videoController.append(videoControllerParts[i]);
     }
 
     videoPlayButton = AddElement("a", [
-        {"key": "class", "value": "boncuk-video-play"},
-        {"key": "href", "value": "#"},
-        {"key": "onclick", "value": "BoncukPlayVideo(); return false;"}
+        {key: "class", value: "boncuk-video-play"},
+        {key: "href", value: "#"},
+        {key: "onclick", value: "BoncukPlayVideo(true); return false;"}
     ]);
     videoControllerParts[0].append(videoPlayButton);
 
     element = AddElement("i", [
-        {"key": "class", "value": "fa fa-play"}
+        {key: "class", value: "fa fa-play"}
     ]);
     videoPlayButton.append(element);
 
     element = AddElement("a", [
-        {"key": "href", "value": "#"},
-        {"key": "onclick", "value": "BoncukRestartVideo(); return false;"}
+        {key: "href", value: "#"},
+        {key: "onclick", value: "BoncukRestartVideo(); return false;"}
     ], '<i class="fa fa-stop"></i>');
     videoControllerParts[0].append(element);
 
     playerTime = AddElement("span", [
-        {"key": "class", "value": "boncuk-video-player-time"}
+        {key: "class", value: "boncuk-video-player-time"}
     ], "00:00:00");
     videoControllerParts[0].append(playerTime);
 
     controllerTimeline = AddElement("input", [
-        {"key": "type", "value": "range"},
-        {"key": "class", "value": "boncuk-video-controller-timeline"},
-        {"key": "min", "value": 0},
-        {"key": "max", "value": 100},
-        {"key": "value", "value": 0}
+        {key: "type", value: "range"},
+        {key: "class", value: "boncuk-video-controller-timeline"},
+        {key: "min", value: 0},
+        {key: "max", value: 1000},
+        {key: "value", value: 0},
+        {key: "onchange", value: "BoncukJumpTime();"}
     ]);
     videoControllerParts[1].append(controllerTimeline);
 
     /*element = AddElement("span", [
-        {"key": "class", "value": "boncuk-logo-for-video"}
+        {key: "class", value: "boncuk-logo-for-video"}
     ]);
     videoControllerParts[2].append(element);*/
 
     element = AddElement("a", [
-        {"key": "href", "value": "#"}
+        {key: "href", value: "#"}
     ], '<i class="fa fa-cog"></i>');
     videoControllerParts[2].append(element);
 
     element = AddElement("a", [
-        {"key": "href", "value": "#"}
+        {key: "href", value: "#"}
     ], '<i class="fa fa-expand"></i>');
     videoControllerParts[2].append(element);
 
     liveTimeline = AddElement("div", [
-        {"key": "class", "value": "boncuk-video-live-timeline"}
+        {key: "class", value: "boncuk-video-live-timeline"}
     ]);
     liveTimeline.style.width = "0%";
     videoDiv.append(liveTimeline);
@@ -176,35 +179,62 @@ function BoncukVideoListener() {
 
     BoncukTextTime(currentTime);
 
-    controllerTimeline.setAttribute("value", parseInt(video.currentTime * 100 / video.duration));
-    liveTimeline.style.width = parseInt(video.currentTime) * 100 / parseInt(video.duration) + "%";
+    if(video.paused) {
+        videoPlayButton.childNodes[0].className = "fa fa-play";
+        videoPlayButton.setAttribute("onclick", "BoncukPlayVideo(true); return false;");
+    }else {
+        videoPlayButton.childNodes[0].className = "fa fa-pause";
+        videoPlayButton.setAttribute("onclick", "BoncukPlayVideo(false); return false;");
+    }
 }
 
-function BoncukPlayVideo() {
-    if(video.paused) {
+function BoncukTimelineListener() {
+    var _duration = video.currentTime * 100 / video.duration;
+    controllerTimeline.value = _duration * 10;
+    liveTimeline.style.width = _duration + "%";
+}
+
+function BoncukPlayVideo(state = false) {
+    if(state) {
+        if(video.currentTime >= video.duration)
+            video.currentTime = 0;
+        
         video.play();
-        video.muted = false;
         videoPlayButton.childNodes[0].className = "fa fa-pause";
         controlTimer = setInterval(BoncukVideoListener, timer);
+        controlTimelineTimer = setInterval(BoncukTimelineListener, timelineTimer);
     }else {
         video.pause();
-        video.muted = true;
         videoPlayButton.childNodes[0].className = "fa fa-play";
         clearInterval(controlTimer);
+        clearInterval(controlTimelineTimer);
+        BoncukJumpTime();
     }
+
+    video.muted = !state;
+    videoPlayButton.setAttribute("onclick", "BoncukPlayVideo(" + !state + "); return false;");
 }
 
 function BoncukToggleController(status) {
     if(status) {
         videoController.style.display = "grid";
+        liveTimeline.style.display = "none";
     }else {
         videoController.style.display = "none";
+        liveTimeline.style.display = "block";
     }
 }
 
 function BoncukRestartVideo() {
     video.currentTime = 0;
     BoncukTextTime(currentTime);
+    if(video.paused)
+        video.play(); 
+}
+
+function BoncukJumpTime() {
+    var currentValue = controllerTimeline.value;
+    video.currentTime = currentValue / 10 * video.duration / 100;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -212,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if(typeof(options) == 'object') {
         if(options.autoplay) {
-            BoncukPlayVideo();
+            BoncukPlayVideo(true);
         }
         video.muted = options.muted;
     }
